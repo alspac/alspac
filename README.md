@@ -288,8 +288,7 @@ derived from the inputs to the function.
 ```r
 library(alspac)
 
-setDataDir("R:/SSCM ALSPAC/Data") 
-## or possibly setDataDir("//ads.bris.ac.uk/filestore/SSCM ALSPAC/Data")
+setDataDir("R:/SSCM ALSPAC/Data")
 
 dat <- extractDataset(
     variable_file="inputs/variables.csv",
