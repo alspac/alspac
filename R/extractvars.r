@@ -18,7 +18,7 @@
 #' - `mult_mum` and `mult_dad` - Sometimes the same mother (or father) had more than one pregnancy in the 18 month recruitment period. Those individuals have two ALNs. If either of these columns is "Yes" then that means you can drop them from the results if you want to avoid individuals being duplicated. This is the guidance from the FOM2 documentation:
 #'
 #'    1.7 Important Note for all data users:
-#'    Please be aware that some women may appear in the release file more than once. This is due to the way in which women were originally enrolled into the study and were assigned IDs. ALSPAC started by enrolling pregnant women and the main study ID is a pregnancy based ID. Therefore if a women enrolled with two different pregnancies (both having an expected delivery date within the recruitment period (April 1991-December 1992)), she will have two separate IDs to uniquely identify these women and their pregnancies. An indicator variable has been included in the file, called mult_mum to identify these women. If you are carrying out mother based research that does not require you to consider repeat pregnancies for which we have data then please select mult_mum == 'No' to remove the duplicate entries. This will keep one pregnancy and randomly drop the other pregnancy. If you are matching the data included in this file to child based data or have been provided with a dataset that includes the children of the ALSPAC pregnancies, as well as the mother-based data, you need not do anything as each pregnancy (and hence each child from a separate pregnancy) has a unique identifier and a mothers data has been included/repeated here for each of her pregnancies where appropriate.
+#'    Please be aware that some G0 mothers may appear in the release file more than once. This is due to the way in which G0 mothers were originally enrolled into the study and were assigned IDs. ALSPAC started by enrolling pregnant women and the main study ID is a pregnancy based ID. Therefore if a women enrolled with two different pregnancies (both having an expected delivery date within the recruitment period (April 1991-December 1992)), she will have two separate IDs to uniquely identify these women and their pregnancies. An indicator variable has been included in the file, called mult_mum to identify these women. If you are carrying out mother based research that does not require you to consider repeat pregnancies for which we have data then please select mult_mum == 'No' to remove the duplicate entries. This will keep one pregnancy and randomly drop the other pregnancy. If you are matching the data included in this file to child based data or have been provided with a dataset that includes the children of the ALSPAC pregnancies, as well as the mother-based data, you need not do anything as each pregnancy (and hence each child from a separate pregnancy) has a unique identifier and a mothers data has been included/repeated here for each of her pregnancies where appropriate.
 #'
 #' The speed at which this function runs is dependent upon how fast your connection is to the R drive
 #' and how many variables you are extracting at once.
@@ -379,3 +379,117 @@ extractWebOutput <- function(filename) {
 	}
 	extractVars(l)
 }
+
+
+
+#' Compare the variable request CSV to the dictionary, check and replace legacy var names and replace if available
+#' 
+#' Run before the data build
+#' 
+#' @param variable_file Input CSV file containing the target variables 
+#' @param current Current dictionary object loaded in Global Environment. This only contains standard data variables available.
+#' @param legacy_file Table containing previously used legacy variable names, used to find missing variables if available.
+#' @param output_file File name for output CSV file containing swapped legacy variable names for new name e.g Bxxxx_output_variable_list_updated.csv
+#' 
+#' 
+#' 
+#' @export 
+
+updateLegacyVars <- function(
+    variable_file,
+    current,
+    legacy_file,
+    output_file
+){
+  
+  # Load target variable list
+  target_variables <- read.csv(variable_file)
+  
+  # Check required columns exist
+  if (!"Name" %in% names(target_variables)) {
+    stop("The target variable file must contain a column called 'Name'.")
+  }
+  
+  if (!"name" %in% names(current)) {
+    stop("The current data must contain a column called 'name'.")
+  }
+  
+  # Find missing variables
+  missing_variables <- data.frame(
+    setdiff(target_variables$Name, current$name),
+    stringsAsFactors = FALSE
+  )
+  
+  names(missing_variables) <- "Missing Variables"
+  
+  if (length(missing_variables$`Missing Variables`) == 0){
+    message(
+      "There were no missing variables found. Please continue with the next step of the build script."
+    )
+    return(NULL)
+  }
+  
+  print(missing_variables)
+  
+  # Load legacy variable lookup
+  legacy_variables <- read.csv(legacy_file)
+  
+  # Check legacy columns exist
+  required_legacy_columns <- c(
+    "Lookup",
+    "New.variable.name"
+  )
+  
+  missing_legacy_columns <- setdiff(
+    required_legacy_columns,
+    names(legacy_variables)
+  )
+  
+  if (length(missing_legacy_columns) > 0) {
+    stop(
+      "The legacy file is missing these columns: ",
+      paste(missing_legacy_columns, collapse = ", ")
+    )
+  }
+  
+  
+  # Match missing variables against legacy names
+  legacy_match <- dplyr::left_join(
+    missing_variables,
+    legacy_variables,
+    by = c("Missing Variables" = "Lookup")
+  )
+  
+  print(legacy_match)
+  
+  # Replace legacy variable names with new names
+  inds <- match(
+    target_variables$Name,
+    legacy_variables$Lookup
+  )
+  
+  target_variables$Name[!is.na(inds)] <-
+    legacy_variables$New.variable.name[inds[!is.na(inds)]]
+  
+  #print(target_variables)
+  
+  # Save updated variable list
+  write.csv(
+    target_variables,
+    file = output_file,
+    row.names = FALSE
+  )
+  write.csv
+  
+  message("An update variable list file has been created. If any missing variables were identified, please check and update the build function with the new variables list file if required.")
+  # Return results
+  invisible(list(
+    target_variables = target_variables,
+    missing_variables = missing_variables,
+    legacy_match = legacy_match
+  ))
+}
+
+#End of updateLegacyVars function
+#################################################
+
