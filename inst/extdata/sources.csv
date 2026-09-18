@@ -38,6 +38,8 @@ OB_,current/other/obstetric/G0/partner/,TRUE,FALSE,TRUE,FALSE,FALSE,FALSE,FALSE,
 OC_,current/other/obstetric/G1/,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,TRUE
 Child_bloods_,current/biosamples/G1/,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,TRUE
 child_metabolomics_,current/biosamples/G1/,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,TRUE
+csamples_,current/biosamples/G1/,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,TRUE
+G1_MS_Metabolon_,current/biosamples/G1/,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,TRUE
 Father_metabolomics_,current/biosamples/G0/partner/,FALSE,FALSE,FALSE,FALSE,TRUE,TRUE,FALSE,FALSE
 Father_samples_,current/biosamples/G0/partner/,FALSE,FALSE,FALSE,FALSE,TRUE,TRUE,FALSE,FALSE
 Mother_samples_,current/biosamples/G0/partner/,TRUE,FALSE,TRUE,FALSE,FALSE,FALSE,FALSE,FALSE
